@@ -1,0 +1,331 @@
+##  SQL - 1일차
+
+# SQL 디벨로퍼 다운로드 
+  - 구글에서 "SQL 디벨로퍼" 검색
+  - 첫번째 검색결과 클릭
+ - 다운로드 SQL 디벨로퍼 버튼 클릭
+  - JDK 11을 포함한 SQL 디벨로퍼 (첫번째것) 다운로드
+     => 오라클 계정 필요 ( 회원가입 : 회사명은 ... 적당히 기입 )
+     => 다운로드 시간 1분 이내
+     => 본인 PC의 다운로드 폴더에 저장됨 
+
+# SQL 디벨로퍼 셋팅
+  -  접속창에서 녹색의 + 버튼
+  - 호스트 : 125.141.133.87
+ - 포드 : 1521
+  - SID : xe       --> 데이터베이스 이름
+
+# SQL 디벨로퍼 접속
+   - 접속창에서 해당 서버의 이름에서 오른쪽 버튼 -> 접속 
+-----------------------------------------------------------
+
+# 테이블 복사 
+   - hr : 쿼리 연습을 위한 개인 유저명
+   - hr 유저가 가지고 있는 emp 테이블 복사 
+
+create table emp
+as
+select * from hr.emp ;
+
+# 테이블 내용 확인
+
+select * from emp ;
+
+# emp 테이블 컬럼들 : 11 컬럼 / 107 row
+
+EMPLOYEE_ID    --> 사번 
+FIRST_NAME
+LAST_NAME      --> 이름
+EMAIL
+PHONE_NUMBER
+HIRE_DATE      --> 입사일
+JOB_ID         --> 직군, 직위
+SALARY         --> 급여, 월급
+COMMISSION_PCT --> 판매수당율  0.4 -> 40% , 0.15 -> 15%
+MANAGER_ID     --> 직속상관 사번 
+DEPARTMENT_ID  --> 근무 부서번호
+
+-----------------------------------------------------------
+# 검색어 / 질의어 / query
+
+SELECT  컬럼명, 컬럼명,...
+FROM       테이블명 ;
+[ WHERE        조건문 AND 조건문 OR 조건문 ...
+   GROUP BY   컬럼명, 컬럼명,..
+   HAVING      조건문 AND 조건문 OR 조건문 ...
+   ORDER BY   컬럼명, ... ]
+
+------------------------------------------------------------
+
+# SELECT 절 
+
+- 컬럼명, 컬럼명, ....
+- 모든 컬럼 : *
+- 수식 : 10 + 20 , SALARY * 2
+- 별칭 : 컬럼명 AS 별칭명, 수식  AS 별칭명 // AS 생략가능 
+             별칭명이 특수문자 또는 공백을 포함할 경우 반드시 "별칭명"
+- ||  : 연결연산자
+- 함수 
+- 서브쿼리 
+- DISTINCT : 중복행 제거 
+
+이름과 월급을 검색
+
+SELECT  LAST_NAME, SALARY 
+FROM   EMP ; 
+
+EMP 테이블의 모든 컬럼의 정보를 검색
+
+SELECT * FROM EMP ;
+
+이름, 월급, 보너스를 검색 
+단 보너스는 월급의 2배 
+
+SELECT LAST_NAME, SALARY, SALARY * 2 AS BONUS
+FROM   EMP ;
+
+사번, 이름 검색 
+단 이름은 모두 ... 
+
+SELECT EMPLOYEE_ID, FIRST_NAME, LAST_NAME
+FROM   EMP ;
+
+SELECT EMPLOYEE_ID, FIRST_NAME || LAST_NAME
+FROM EMP;
+
+SELECT EMPLOYEE_ID, 
+       FIRST_NAME || ' ' || LAST_NAME
+FROM EMP;
+
+SELECT EMPLOYEE_ID, 
+       FIRST_NAME || ' ' || LAST_NAME AS NAME
+FROM EMP;
+
+* T1,T2,T3
+SELECT T1 || '-' || T2 || '-' || T3 AS TEL
+FROM    테이블명 ;
+
+부서번호 검색 
+
+SELECT  DISTINCT DEPARTMENT_ID 
+FROM  EMP ;
+
+------------------------------------------------------------
+# 조건 검색 
+- WHERE 조건문 ....
+- 조건문 :  좌항  비교연산자  우항
+   => 좌항 : 컬럼명, 우항 : 값, 수식
+
+급여 8,000 이상 받는 사원의 이름과 급여 
+
+SELECT LAST_NAME, SALARY
+FROM   EMP 
+WHERE   SALARY  >=  8000 ;
+
+# 숫자 조건 검색 
+- 숫자 입력시 오직 숫자만....
+- 8,000 -> X, $8,000 -> X 
+- 서식, 표시형식, 화폐단위, 천단위 콤마 제외하고 오직 숫자만...!
+
+- 이상, 이하 : = 포함
+- 미만, 초과 : = 미포함 
+
+# 문자 조건 검색
+- 문자 또는 문자열 ==> 작은 따옴표 감싼다!! ==> '문자열'
+- 작은따옴표 안의 문자는 대소문자 구분한다.
+- 
+
+이름이 Chen 인 사원의 이름, 월급, 입사일 검색 
+
+SELECT LAST_NAME, SALARY, HIRE_DATE
+FROM   EMP
+WHERE  LAST_NAME = 'Chen' ; 
+
+SELECT LAST_NAME, SALARY, HIRE_DATE
+FROM   EMP
+WHERE  LAST_NAME = 'chen' ; 
+==> 검색결과 없음!!
+
+# 날짜 조건 검색
+
+- 날짜타입 : 세기,  년, 월, 일, 시, 분, 초 ==> 7 가지 정보
+- 날짜자료 작은 따옴표 감싼다 : '2023-07-17'
+
+2005년 이전에 입사한 사원의 이름, 입사일 검색 
+
+SELECT LAST_NAME, HIRE_DATE
+FROM   EMP
+WHERE  HIRE_DATE < '2005-01-01' ; 
+
+SELECT LAST_NAME, HIRE_DATE
+FROM   EMP
+WHERE  HIRE_DATE < '2005';
+==> ORA-01861: literal does not match format string
+
+SELECT LAST_NAME, HIRE_DATE
+FROM   EMP
+WHERE  HIRE_DATE < TO_DATE('01-01-2005', 'MM-DD-YYYY')  ;
+
+# 조건 두개 
+- 논리연산자 : AND, OR, NOT 
+
+80 부서에 근무하는 사원중에 급여를 4000 이상 받는 사원의 이름, 급여, 부서번호 
+
+SELECT LAST_NAME, SALARY, DEPARTMENT_ID
+FROM   EMP
+WHERE  DEPARTMENT_ID = 80 AND SALARY >= 4000 ;
+==> 34 건 검색 
+
+SELECT LAST_NAME, SALARY, DEPARTMENT_ID
+FROM   EMP
+WHERE  DEPARTMENT_ID = 80 OR SALARY >= 4000 ;
+==> 65 건 검색
+
+# 조건이 여러개
+   - 우선순위 조건부터 괄호로 감싼다.
+
+SELECT LAST_NAME, SALARY, DEPARTMENT_ID
+FROM   EMP
+WHERE  (DEPARTMENT_ID = 80 OR SALARY >= 4000  )
+    AND HIRE_DATE < '2005-01-01' ; 
+
+-----------------------------------------------------
+
+# 정렬 
+   - ORDER BY 컬럼명 [옵션] ,  컬럼명 [옵션] ...
+   - 쿼리문의 마지막에 기술
+   - 꼭! 필요한 경우만 한다  => 검색 시간을 많이 요구함.
+   - 옵션 
+        - 오름차순 : 1~ 9, A~Z => ASC 기본이므로  주로 생략 
+        - 내림차순 : DESC 
+
+급여를 많이 받는 사원순으로 검색, 이름, 월급
+
+SELECT LAST_NAME, SALARY
+FROM  EMP 
+ORDER BY SALARY DESC ;
+
+급여를 많이 받는 사원순으로 검색,
+단, 급여가 같으면 입사가 빠른 사원순
+
+SELECT LAST_NAME, SALARY, HIRE_DATE
+FROM  EMP 
+ORDER BY SALARY DESC , HIRE_DATE ;
+
+ORDER BY 절에 컬럼명 대신에 컬럼의 순서를 숫자로 표기 !!
+
+SELECT LAST_NAME, SALARY, HIRE_DATE
+FROM  EMP 
+ORDER BY 2 DESC , 3 ;
+
+------------------------------------------------------------
+
+# 기타 연산자
+
+- 비교연산자 : >=, <=, <, >, =, != , <>
+- BETWEEN.. AND..
+- IN
+- LIKE
+- IS
+
+==> 아닌것 : NOT
+
+# 범위 검색 
+- BETWEEN 값1 AND 값2
+- 값1 최소값, 값2 최대값
+- 값1, 값1 모두 포함한다
+
+월급이 10000~ 15000 사이인 사원의 이름과 월급
+ 
+SELECT LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY >= 10000 AND SALARY <= 15000 ;
+
+SELECT LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY NOT BETWEEN 10000 AND  15000 ;
+
+SELECT LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY BETWEEN 15000 AND  10000 ;
+==> 검색결과 없음
+
+2005 년에 입사한 사원의 이름과 입사일
+   
+SELECT LAST_NAME, HIRE_DATE
+FROM   EMP
+WHERE  HIRE_DATE >= '2005-01-01' 
+   AND HIRE_DATE <= '2005-12-31';
+
+SELECT LAST_NAME, HIRE_DATE
+FROM   EMP
+WHERE  HIRE_DATE BETWEEN '2005-01-01' AND '2005-12-31' ;
+
+# 목록 검색
+
+- IN ( 값1, 값2,... )
+
+10,30,40 부서에 근무하는 사원의 이름과 부서번호
+
+SELECT LAST_NAME, DEPARTMENT_ID
+FROM   EMP
+WHERE  DEPARTMENT_ID = 10 
+    OR DEPARTMENT_ID = 30 
+    OR DEPARTMENT_ID = 40  ;
+
+SELECT LAST_NAME, DEPARTMENT_ID
+FROM   EMP
+WHERE  DEPARTMENT_ID NOT IN (10,30,40 ) ; 
+
+
+# 패턴 검색 
+
+- LIKE
+- 주로 문자 컬럼에 사용
+- 와일드 문자 :
+   - % : 여러 문자 대신
+   - _ : 한문자 대신
+
+이름의 첫자가 'C' 인 사원의 정보
+
+SELECT *
+FROM   EMP
+WHERE  LAST_NAME NOT like 'C%' ;
+
+이름 4자인 사원의 정보
+
+SELECT *
+FROM   EMP
+WHERE  LAST_NAME like '____' ;
+
+이름 첫자는 'B' 인데 전체 4자 인 사원의  정보 
+
+SELECT *
+FROM   EMP
+WHERE  LAST_NAME like 'B___' ;
+
+
+# 널 값 비교시 
+- is null 
+
+판매수당이 널인 사원의 정보
+
+SELECT *
+FROM   EMP
+WHERE COMMISSION_PCT IS NULL ;
+
+널이 아닌것 
+
+SELECT *
+FROM   EMP
+WHERE COMMISSION_PCT IS NOT NULL 
+
+SELECT *
+FROM   EMP
+WHERE COMMISSION_PCT = NULL ; 
+==> 검색결과 없음
+==> 다른 DBMS 가능함 
+
+
+
+

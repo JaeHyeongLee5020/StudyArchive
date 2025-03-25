@@ -1,0 +1,141 @@
+##  SET 연산자
+
+CREATE TABLE JOB_HISTORY
+AS
+SELECT * FROM HR.JOB_HISTORY ;
+
+--------------------------------------------------------------
+
+# UNION 
+
+- 중복행 배제  // 한번만
+- 첫번째 컬럼의 오름차순 자동 정렬 
+- 스키마 ( 컬럼 갯수, 데이터타입 ) 같아야 된다.
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+UNION 
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   JOB_HISTORY ; 
+
+- UNION 결과를 테이블에 저장
+
+CREATE TABLE TTT
+AS
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+UNION 
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   JOB_HISTORY ; 
+
+# UNION ALL
+
+- 중복행 중복됨
+- 스키마 ( 컬럼 갯수, 데이터타입 ) 같아야 된다.
+- 첫번째 쿼리결과 및 두번째 쿼리결과 붙여주는것 
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+UNION ALL
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   JOB_HISTORY ; 
+
+- 쿼리문을 여러개 연결할 수 있다.
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+UNION ALL
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+UNION ALL
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+UNION ALL
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   JOB_HISTORY ; 
+
+# INTERSECT 
+
+- 두 쿼리문의 교집합
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+INTERSECT  
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   JOB_HISTORY ; 
+
+# MINUS
+- 첫 번째 질의문에서 두번째 질의문의 결과 뺀 것
+
+- 직종을 한번도 변경하지 않은 사원 검색 
+
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+MINUS 
+SELECT EMPLOYEE_ID, JOB_ID
+FROM   JOB_HISTORY ; 
+
+--------------------------------------------------------------
+- 두 질의문의 결과 스키마 ( 컬럼의 갯수, 데이터 타입) 같아야 되지만
+   컬럼명을 달라도 된다.
+- 결과 컬럼명은 첫번째 질의문의 컬럼명이 대표 컬럼명이 된다.
+
+
+SELECT  EMPLOYEE_ID, JOB_ID
+FROM   EMP 
+INTERSECT  
+SELECT  EMPLOYEE_ID E, JOB_ID J
+FROM    JOB_HISTORY ; 
+
+# SET 연산자의 전제 조건
+   => 스키마 동일 : 컬럼의 갯수, 데이터 타입
+
+# 스키마가 다를경우 SET 연산자 실행방법 
+
+SELECT  EMPLOYEE_ID, JOB_ID, SALARY
+FROM   EMP 
+UNION
+SELECT  EMPLOYEE_ID, JOB_ID, TO_NUMBER(NULL) S
+FROM    JOB_HISTORY ; 
+
+SELECT  EMPLOYEE_ID, JOB_ID, SALARY
+FROM   EMP 
+UNION
+SELECT  EMPLOYEE_ID, JOB_ID, 0
+FROM    JOB_HISTORY ; 
+
+-------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

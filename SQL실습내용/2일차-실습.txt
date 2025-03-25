@@ -1,0 +1,338 @@
+## DB&SQL -  2일차 
+
+# 단일행 함수  : 문자함수
+
+SELECT EMAIL, LOWER(EMAIL), INITCAP(EMAIL)
+FROM   EMP ;
+
+SELECT LAST_NAME, SALARY
+FROM   EMP
+WHERE  LAST_NAME = 'Chen' ;
+
+SELECT LAST_NAME, SALARY
+FROM   EMP
+WHERE  lower(LAST_NAME) = 'chen' ;
+
+SELECT LAST_NAME, SALARY
+FROM   EMP
+WHERE  LAST_NAME = INITCAP('chen' ) ;
+
+
+# SUBSTR( 문자열, 시작위치 [, 갯수] )
+- *****
+- 컬럼값 중 일부만 취할 때
+- 시작위치 > 0 : 왼쪽 에서  시작
+- 시작위치 < 0 : 오른쪽 에서  시작
+
+SELECT EMAIL,  SUBSTR(EMAIL, 1, 3), SUBSTR(EMAIL, -3 )
+FROM   EMP ;
+
+사원.주민번호 : 951010-1234567
+
+10월이 생일이 사원들만 검색 
+
+SELECT *
+FROM    사원
+WHERE   SUBSTR(주민번호, 3,2) = '10'  ;
+
+남자 사원만 검색 
+
+SELECT *
+FROM    사원
+WHERE   SUBSTR(주민번호, 8, 1) IN ('1','3' ) ;
+
+# INSTR( 컬럼명, '찾고자하는 문자열' )
+# INSTR( 컬럼명, '찾고자하는 문자열' [, 시작위치, 몇번째 ]  )
+
+- 찾고자 하는 문자열이 시작위치
+- 없으면 0 반환 
+- 여러개 있으면 첫번째것 반환 
+
+SELECT EMAIL, INSTR(EMAIL,'S') , INSTR(EMAIL,'S', 1, 2) 
+FROM  EMP;
+
+
+JOB_ID 컬럼의 '_' 앞문자와 뒷문자 따로 출력
+SUBSTR, INSTR 를 함께 사용할 것 !
+
+SELECT 	JOB_ID, 
+   	SUBSTR( JOB_ID, 1, INSTR(JOB_ID, '_') -1 ) AS "앞문자",
+   	SUBSTR( JOB_ID, INSTR(JOB_ID, '_') +1 ) AS "뒷문자"
+FROM    EMP ;
+
+----------------------
+
+* TEST테이블의 A 컬럼 이용 할 것
+
+SELECT 	A, 
+   	SUBSTR( A, 1, INSTR(A, '_') -1 ) AS "앞문자",
+   	SUBSTR( A, ?? )  AS "중간문자",
+   	SUBSTR( A, ?? )  AS "끝문자"
+FROM   TEST ;
+
+SELECT 	A, 
+   	SUBSTR( A, 1, INSTR(A, '_') -1 ) AS "앞문자",
+   	SUBSTR( A, INSTR(A, '_')+1 , INSTR(A, '_')-1 )  AS "중간문자",
+   	SUBSTR( A, INSTR(A, '_', 1, 2)  +1 )  AS "끝문자"
+FROM   TEST ;
+
+# LENGTH(컬럼명)
+- 해당 컬럼의 문자의 길이
+- 영문자, 특수문자, 숫자, 공백, 한글,,,,, 모두 한자
+
+SELECT EMAIL, LENGTH(EMAIL)
+FROM   EMP ;
+
+SELECT LENGTH('가123 &^%') FROM DUAL ;
+
+# LENGTHB(컬럼명)
+- 해당 컬럼의 바이트의 길이
+
+* 오라클 11g 버젼에서는 한글이 3 byte
+SELECT LENGTHB('가') FROM DUAL 
+
+# LPAD, RPAD
+- LPAD( 컬럼명, 전체사이즈, '채울문자' )
+
+SELECT SALARY, LPAD(SALARY, 10, '-') FROM EMP ;
+
+# TRIM (컬럼명)
+# TRIM (문자열 FROM 컬럼명)
+- 컬럼의 앞뒤 공백 제거
+- 중간 공백은 유지
+
+SELECT TRIM( '   BDS DFD SDFD     ' ) FROM DUAL ;
+
+SELECT TRIM ( '0' FROM '000002334' ) FROM DUAL ;
+
+# REPLACE ( 컬럼명, '찾는문자열','바꿀문자열')
+
+SELECT EMAIL, REPLACE ( EMAIL, 'S', '***' ) FROM EMP;
+
+공백제거 
+
+SELECT REPLACE('  B C D E D   D E DDD   ',  ' ', '' ) FROM DUAL ;
+
+-----------------------------------------------------------
+
+EMAIL : SKING  ==> SKI**
+
+HINT : SUBSTR, RPAD, LENGTH 
+
+SELECT EMAIL,
+       RPAD( SUBSTR(EMAIL, 1,3), LENGTH(EMAIL), '*' ) AS A
+FROM   EMP ; 
+
+===========================================================
+
+# 숫자 함수
+
+ROUND(컬럼명[, 자릿수])
+- 반올림
+- 자릿수 
+   =>  > 0  : 소숫점 이하 자릿수
+   =>  < 0  : 정수 자릿수
+   =>  = 0 : 정수만 표시 
+
+SELECT  ROUND( 123.45678 , 2) ,   ==>  123.46
+       ROUND( 123.45678 , 0) ,   ==>  123
+       ROUND( 123.45678 , -2)    ==>  100
+FROM DUAL ;
+
+TRUNC(컬럼명[, 자릿수])
+- 절사함수, 버림함수 
+- 자릿수 
+   =>  > 0  : 소숫점 이하 자릿수
+   =>  < 0  : 정수 자릿수
+   =>  = 0 : 정수만 표시 
+
+SELECT  TRUNC( 123.45678 , 2) ,   ==>  123.45
+       TRUNC( 123.45678 , 0) ,   ==>  123
+       TRUNC( 123.45678 , -2)    ==>  100
+FROM DUAL ;
+
+* 대한민국 공과금 TRUNC( 금액, -1 )
+
+-----------------------------------------------------------
+
+# 날짜 함수
+
+- 날짜 : 세기, 년, 월, 일, 시, 분, 초  => 7가지 정보
+- 날짜 타입 자료는 연산이 가능 ( +, - ) 
+
+- 날짜 - 날짜 => 일자
+- 날짜 + 숫자 => 일자에 연산 
+
+ SELECT HIRE_DATE, HIRE_DATE + 10 FROM EMP
+
+# MONTHS_BETWEEN(날짜1, 날짜2)
+
+SELECT LAST_NAME, 
+       TRUNC(MONTHS_BETWEEN(SYSDATE, HIRE_DATE) ) AS "근속월수"
+FROM   EMP ;
+
+# ADD_MONTHS( 날짜, 개월수 )
+# ADD_MONTHS( 날짜, -개월수 )
+
+ SELECT HIRE_DATE,
+       ADD_MONTHS( HIRE_DATE , 3),
+       ADD_MONTHS( HIRE_DATE , -3)
+ FROM EMP
+
+# LAST_DAY(날짜컬럼)
+- 해당 날짜의 마지막 날
+
+ SELECT HIRE_DATE, LAST_DAY(HIRE_DATE) FROM EMP;
+
+# NEXT_DAY(날짜컬럼, '요일')
+- 요일 : '토','토요일', 숫자 : 일월화수목금토 -> 1234567
+
+SELECT SYSDATE, NEXT_DAY(SYSDATE, '토') FROM DUAL ;
+SELECT SYSDATE, NEXT_DAY(SYSDATE, '토요일') FROM DUAL ;
+SELECT SYSDATE, NEXT_DAY(SYSDATE, 7) FROM DUAL ;
+==> 숫자 많이 쓴다!!
+
+# ROUND (날짜컬럼, '요소')
+- 요소 : YEAR, MONTH, DAY, HOUR,.....
+
+SELECT HIRE_DATE, ROUND(HIRE_DATE, 'YEAR' ) FROM EMP ;
+SELECT HIRE_DATE, ROUND(HIRE_DATE, 'MONTH' ) FROM EMP ;
+
+# EXTRACT ( 요소 FROM 날짜컬럼 )
+- 요소 : YEAR, MONTH, DAY, HOUR,.....
+
+2004 년도에 입사한 사원의 정보
+
+SELECT   *
+FROM       EMP
+WHERE     EXTRACT(YEAR FROM  HIRE_DATE ) = 2004 ;
+
+=============================================================
+
+# 형전환함수
+
+- TO_CHAR( 컬럼명 , '날짜패턴' ) 
+   => 날짜 -> 문자
+
+SELECT SYSDATE, TO_CHAR( SYSDATE, ' YYYY-MM-DD') FROM DAUL;
+SELECT SYSDATE, TO_CHAR( SYSDATE, ' YYYY-MM-DD HH:MI:SS') FROM DAUL;
+SELECT SYSDATE, TO_CHAR( SYSDATE, ' YYYY-MM-DD DY HH:MI:SS') FROM DAUL;
+SELECT SYSDATE, TO_CHAR( SYSDATE, ' YYYY-MM-DD DAY HH24:MI:SS') FROM DAUL;
+SELECT SYSDATE, TO_CHAR( SYSDATE, ' YYYY-MM-DD DY HH:MI:SS AM') FROM DAUL;
+
+- TO_CHAR( 컬럼명, '숫자패턴')
+ => 숫자 -> 문자 
+
+SELECT SALARY, TO_CHAR(SALARY, '99,999' ) FROM  EMP;
+SELECT SALARY, TO_CHAR(SALARY, '000,000' ) FROM  EMP; 
+SELECT SALARY, TO_CHAR(SALARY, '9,999' ) FROM  EMP;
+==> 원래 자료보다 패턴이 적으면 #### ...표시
+
+SELECT SALARY, TO_CHAR(SALARY, '$99,999' ) FROM  EMP;
+SELECT SALARY, TO_CHAR(SALARY, 'L99,999' ) FROM  EMP;
+==> L : 서버가 설치된 위치의 화폐단위
+
+SELECT COMMISSION_PCT, TO_CHAR(COMMISSION_PCT, '0.00' ) FROM  EMP;
+
+- TO_DATE(문자열 , '날짜패턴)
+   => 문자 -> 날짜 
+
+'2005-10-10'  => TO_DATE('2005-10-10' , 'YYYY-MM-DD')
+
+==========================================================================
+
+# 일반함수
+
+- CASE 문 
+  => 쿼리문 안의 조건문
+   =>  ELSE 필수 아님 =>  그밖의 케이스는 nuLL 
+
+이름, 월급, 보너스 지급코자 한다. 보너스는 월급의 2배 
+
+SELECT LAST_NAME, SALARY, SALARY * 2 AS BONUS 
+FROM    EMP ;
+
+
+이름, 월급, 보너스 지급코자 한다. 
+보너스는 부서별로 다르게 지급코자 한다. 
+
+10 -> 2배,  20 -> 3배,  40 -> 4배, 나머지 -> 1배
+
+SELECT 	LAST_NAME, 
+	SALARY, 
+        DEPARTMENT_ID ,
+	CASE DEPARTMENT_ID
+	   WHEN  10 	THEN SALARY * 2
+	   WHEN  20 	THEN SALARY * 3
+	   WHEN  40 	THEN SALARY * 4
+	 ELSE 
+	   SALARY * 1 
+               END  AS BONUS 
+FROM    EMP ;
+
+SELECT 	LAST_NAME, 
+	SALARY, 
+        DEPARTMENT_ID ,
+	CASE 
+	   WHEN  DEPARTMENT_ID IN (10,50)  		THEN SALARY * 2
+	   WHEN  JOB_ID LIKE '%CLERK' 	 		THEN SALARY * 3
+	   WHEN  EXTRACT(YEAR FROM HIRE_DATE ) < 2005 	THEN SALARY * 4
+	 ELSE 
+	   SALARY * 1 
+               END  AS BONUS 
+FROM    EMP ;
+
+- CASE 문 -> DECODE 함수 변환
+  => DECODE 함수의 단점 : = 등가 조건 가능 
+
+SELECT 	LAST_NAME, 
+	SALARY, 
+        DEPARTMENT_ID ,
+	DECODE( DEPARTMENT_ID ,
+		10,	SALARY * 2,
+		20,	SALARY * 3,
+	 	40, 	SALARY * 4,  SALARY * 1  ) AS BONUS 
+FROM    EMP ;
+
+# NULL 관련 함수
+
+- NVL( 컬럼명, 널일경우 대체값 )
+
+총지급액 : 월급 + 수당 
+수당 : 월급 * 수당율
+
+총지급액 :  SALARY + ( SALARY * COMMISSION_PCT ) 
+
+
+SELECT 	LAST_NAME, 
+	SALARY, 
+	COMMISSION_PCT,
+	SALARY + ( SALARY * COMMISSION_PCT ) AS TOTAL
+FROM      EMP ; 
+
+SELECT 	LAST_NAME, 
+	SALARY, 
+	COMMISSION_PCT,
+	SALARY + ( SALARY * NVL(COMMISSION_PCT, 0) ) AS TOTAL
+FROM      EMP ; 
+
+- NVL2 ( 컬럼명, 널이 아닌경우, 널인경우 )
+
+수당율이 있으면 수당받음, 널이면 수당안받음 
+
+SELECT 	LAST_NAME, 
+	SALARY, 
+	COMMISSION_PCT,
+	NVL2(COMMISSION_PCT, '수당받음','수당안받음' ) AS 수당여부
+FROM      EMP ; 
+
+
+
+
+
+
+
+
+
+
+

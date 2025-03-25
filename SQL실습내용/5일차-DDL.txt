@@ -1,0 +1,181 @@
+## DDL - 데이터 정의어
+
+# 오라클 데이터 타입
+
+# 문자 
+- CHAR(N)  
+  고정길이 문자 / 최대 2000 BYTE / 기본 1 BYTE 
+   => Y/N , O/X, 사번, 학번, 주민번호, 우편번호,..
+
+- VARCHAR2(N)
+  가변길이 문자 / 최대 4000 BYTE / 기본 1 BYTE 
+   => 이름,  제목, 상품명, 설명, ....   
+
+- LONG(N) 
+   최대 2 GB 가변길이 문자형
+   한 레코드에 한번만 사용할 것 
+   LONG 대신에 CLOB 사용을 권고 
+
+- CLOB
+  - 대용량 문자형 
+   - 최대 4 GB
+
+# 숫자
+
+- 정수 : NUMBER(자릿수 [ , 소숫점이하자릿수] )
+   => A NUMBER(3)    :  0 ~ 999
+
+- 실수 : NUMBER(전체자릿수, 소숫점이하자릿수 ) 
+   => A NUMBER( 4,1 ) : 0.0 ~ 999.9
+   => B NUMBER( 2,2) : 0.0 ~ 0.99
+
+# 날짜
+
+- DATE
+  BC 4712. 1.1 ~ 9999.12.31
+   세기, 년, 월, 일, 시, 분,초 
+   => 특정일, 기념일 ...
+
+- TIMESTAMP
+   세기, 년, 월, 일, 시, 분,초  + 초이하 6자리 입력가능 
+   날짜를 로그로 남길때
+
+=================================================================
+
+# 테이블 생성 
+
+CREATE TABLE 테이블명 (
+  컬럼명     데이터타입(크기)   제약조건  제약조건  ,
+  컬럼명     데이터타입(크기)   제약조건  제약조건  ,
+  ...
+); 
+
+CREATE TABLE ST1 (
+   A     CHAR(5),
+  B    VARCHAR2(30),
+  C    DATE
+);
+
+----------------------------------------------------------------
+
+# 테이블 구조 변경 : ALTER 
+
+- ADD : 컬럼 추가
+- MODIFY  : 컬럼의 타입/ 크기 변경  -> 크기 확장시 주로 사용 
+- DROP , DROP COULUMN : 컬럼 삭제
+- RENAME COLUMN  : 컬럼 이름 변경
+
+컬럼 추가 
+
+ALTER TABLE ST1
+ADD ( D NUMBER(5) , E NUMBER(3) ) ;
+
+* DESC ST1 ; => 테이블의 구조 확인
+
+컬럼 크기 확장 
+
+ALTER TABLE ST1
+MODIFY ( B VARCHAR2(50) ) ; 
+
+컬럼 삭제 
+
+ALTER TABLE ST1
+DROP ( E ) ;
+
+컬럼이름 변경 
+
+ALTER TABLE ST1
+RENAME COLUMN C TO BIRTH ; 
+
+*** DDL 사용자가 적은 시간대에 사용할 것을 추천 
+
+========================================================
+
+# 테이블 삭제 
+
+DROP TABLE 테이블명 ; 
+==> 테이블 스키마 + 입력자료 모두 삭제 
+
+========================================================
+# 테이블 생성 시 제약조건
+
+# KEY(키) : 식별 
+
+- 슈퍼키 : 식별 
+- 후보키 : 식별 + 최소성
+- 대체키
+- 기본키
+- 외래키
+
+ 사원( 사번, 이름, 주소, 이메일, 휴대폰, 주민번호, 근무부서, .... )
+
+ 후보키 : 사번, 이메일, 휴대폰, 주민번호 
+ 기본키 : 사번 -> NOT NULL, 중복안됨
+ 대체키 : 이메일, 휴대폰, 주민번호
+ 외래키 : 근무부서 ->참조하는 테이블의 기본키 값중에 하나 또는 널 
+
+------------------------------------------------------------
+
+# 제약조건 
+
+- P : PRIMARY KEY  : 중복불가, 생략불가
+- R : FOREIGN KEY : 참조하는 테이블의 기본키 값중에 하나 또는 널 
+- U : UNIQUE : 중복불가
+- C : NOT NULL : 생략불가
+- C : CHECK (조건식) : 조건식에 맞는 값만 컬럼에 입력가능 
+
+- DEFAULT : 기본값 지정 
+
+D ( D_NO, D_NAME )
+E ( E_NO, E_NAME, GENDER, EMAIL, HIRE_DATE, D_NO )
+
+CREATE TABLE D (
+ D_NO  	NUMBER(2)     PRIMARY KEY,
+ D_NAME VARCHAR2(50)  NOT NULL
+);
+
+CREATE TABLE E (
+  E_NO	  CHAR(5)	  PRIMARY KEY,
+  E_NAME    VARCHAR2(50)	  NOT NULL,
+  GENDER   CHAR		  CHECK (GENDER IN ('F','M')) NOT NULL,
+ EMAIL     VARCHAR2(100)  UNIQUE, 
+ HIRE_DATE DATE		  DEFAULT SYSDATE, 
+ D_NO	   NUMBER(2)      REFERENCES D ( D_NO )
+);
+
+INSERT INTO D VALUES ( 10, '자재부');
+INSERT INTO D VALUES ( 20, '생산부');
+INSERT INTO D VALUES ( 30, '판매부');
+
+INSERT INTO D VALUES ( 10, '자재부');
+==> ORA-00001: unique constraint (A80.SYS_C00519914) violated
+
+# 제약조건 확인하기
+
+- 딕션너리 : USER_CONSTRAINTS
+
+SELECT *
+FROM   USER_CONSTRAINTS 
+WHERE  TABLE_NAME = 'D' ;
+
+
+INSERT INTO E VALUES ( '111','AAA','F','A@NAVER.COM','2000-10-10', 10 ) ;
+
+INSERT INTO E VALUES ( '222','BBB','A','B@NAVER.COM','2000-10-10', 10 ) ;
+==> ORA-02290: check constraint (A80.SYS_C00519947) violated
+
+INSERT INTO E VALUES ( '222','BBB','M','B@NAVER.COM','2000-10-10', 10 ) ;
+
+INSERT INTO E VALUES ( '333','CCC','M','C@NAVER.COM','2000-10-10', 45 ) ;
+==> ORA-02291: integrity constraint (A80.SYS_C00519950) violated - parent key not found
+
+
+
+
+
+
+
+
+
+
+

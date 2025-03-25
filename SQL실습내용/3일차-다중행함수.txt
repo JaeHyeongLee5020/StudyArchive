@@ -1,0 +1,205 @@
+## 다중행 함수
+
+- 집계함수, 통계함수, 그룹함수
+- 여러행의 값 => 처리(함수) => 하나의 결과값 반환
+- SUM, AVG, COUNT, MAX, MIN,....
+- ** NULL  값 제외 
+
+총 사원수 ?
+
+SELECT COUNT(*) AS 총사원수,
+           COUNT(COMMISSION_PCT) AS 수당받는사원수
+FROM    EMP ;
+
+- COUNT(*) : ROW 의 갯수
+- COUNT(컬럼명) :
+
+회사의 총급여, 평균급여
+
+SELECT  SUM(SALARY) AS 총급여,
+            AVG(SALARY) AS 평균급여
+FROM     EMP ;
+
+------------------------------------------
+
+# 그룹지정 
+
+- GROUP BY 컬럼명, 컬럼명,....
+
+부서별 인원수 ?
+
+SELECT   DEPARTMENT_ID, COUNT(*) AS 부서인원수
+FROM       EMP
+GROUP BY DEPARTMENT_ID 
+ORDER BY 1 ;
+
+SELECT   DEPARTMENT_ID, COUNT(*) AS 부서인원수
+FROM       EMP ;
+==> ORA-00937: not a single-group group function
+==> SELECT 절에 그룹함수를 제외한 컬럼은 반드시 GROUP BY 기술할 것!!
+
+부서별, 직군별 근무인원수
+
+SELECT   DEPARTMENT_ID, JOB_ID, COUNT(*) AS 부서인원수
+FROM       EMP
+GROUP BY DEPARTMENT_ID, JOB_ID
+ORDER BY 1 ;
+
+부서별 평균급여, 평균은 정수로 처리하시오
+
+SELECT DEPARTMENT_ID,  TRUNC(AVG(SALARY) ,0 ) AS 평균급여
+FROM    EMP
+GROUP BY DEPARTMENT_ID
+ORDER BY 1 ;
+
+--------------------------------------------------------
+# HAVING 절
+
+-  원하는 그룹 선택 
+-  HAVING 조건문 AND 조건문 OR 조건문.... 
+- 단독으로 사용안되고 반드시 GROUP BY 절이 있는경우 선택적으로 사용가능 
+
+- WHERE 절 : 테이블의 행을 제한 
+- HAVING 절 : 그룹을 제한 
+
+부서별 인원수 검색, 단 부서인원수가 5명 이상인 부서만 검색 
+
+SELECT   DEPARTMENT_ID, COUNT(*) AS 부서인원수
+FROM       EMP
+GROUP BY DEPARTMENT_ID 
+HAVING  COUNT(*)  >= 5
+ORDER BY 1 ;
+
+급여가 5000 이상 받는 사원이 부서별로 몇명인지 검색 ?
+
+SELECT   DEPARTMENT_ID, COUNT(*) AS 부서인원수
+FROM       EMP
+WHERE   SALARY >= 5000
+GROUP BY DEPARTMENT_ID 
+ORDER BY 1 ;
+
+
+SELECT    DEPARTMENT_ID, COUNT(*) AS 부서인원수
+FROM        EMP
+WHERE    SALARY >= 5000
+GROUP BY  DEPARTMENT_ID 
+HAVING   COUNT(*) > 3 
+ORDER BY 부서인원수 ;
+
+----------------------------------------------------------
+
+# 기술 순서
+
+SELECT -> FROM -> [ WHERE -> GROUP BY -> HAVING -> ORDER BY ]
+
+
+# QUERY 실행 순서 *****
+
+FROM -> WHERE -> GROUP BY -> HAVING -> SELECT -> ORDER BY 
+
+===========================================================
+
+주문 ( 주문번호, 주문자, 주문상품, 주문갯수, 주문합계, 주문날짜 )
+** 2023년 자료만 있다고 가정 
+
+1. 5월달에 주문내역 중에 100 개 이상 팔린 상품과 주문갯수 합계 
+
+SELECT     주문상품, SUM(주문갯수) AS 총팔린갯수
+FROM        주문
+WHERE       EXTRACT( MONTH FROM 주문날짜) = 5
+GROUP BY  주문상품
+HAVING   SUM(주문갯수) >= 100
+ORDER BY 2 DESC ;
+
+2. 지난달 주문내역 중에 100 개 이상 팔린 상품과 주문갯수 합계 
+
+SELECT     주문상품, SUM(주문갯수) AS 총팔린갯수
+FROM        주문
+WHERE       EXTRACT( MONTH FROM 주문날짜) =    EXTRACT( MONTH FROM SYSDATE ) - 1
+GROUP BY  주문상품
+HAVING   SUM(주문갯수) >= 100
+ORDER BY 2 DESC ;
+
+3. 1사분기 (1,2,3) 주문내역 중에 100 개 이상 팔린 상품과 주문갯수 합계 
+
+SELECT     주문상품, SUM(주문갯수) AS 총팔린갯수
+FROM        주문
+WHERE       EXTRACT( MONTH FROM 주문날짜) IN (1,2,3)
+GROUP BY  주문상품
+HAVING   SUM(주문갯수) >= 100
+ORDER BY 2 DESC ;
+
+--------------------
+
+# TOP-n 알고리즘
+- 서브쿼리 구현
+- 의사컬럼 : ROWNUM  
+
+4. 1사분기 (1,2,3) 중에 가장 많이 팔린 상품 10개의 상품과 주문갯수 합계
+
+SELECT  ROWNUM AS 순위,  주문상품, 총주문갯수
+FROM       ( 
+		SELECT     주문상품, SUM(주문갯수) AS 총팔린갯수
+		FROM        주문
+		WHERE       EXTRACT( MONTH FROM 주문날짜) IN (1,2,3)
+		GROUP BY  주문상품
+             		ORDER BY  2 DESC 
+               )
+WHERE ROWNUM <= 10 ;
+
+5. 우리회사에 급여를 가장 많이 받는 사원이름, 급여출력 ( 10명 )
+
+SELECT  ROWNUM AS 순위,  LAST_NAME, SALARY
+FROM       ( 
+		SELECT     LAST_NAME, SALARY
+		FROM        EMP
+             		ORDER BY  2 DESC 
+               )
+WHERE ROWNUM <= 10 ;
+
+
+------------------------------------------------------------
+
+년도별 입사인원수 
+
+SELECT    EXTRACT( YEAR FROM HIRE_DATE) AS 년도,
+         COUNT(*) AS 입사인원수
+FROM        EMP 
+GROUP BY  EXTRACT( YEAR FROM HIRE_DATE)
+ORDER BY  1 ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

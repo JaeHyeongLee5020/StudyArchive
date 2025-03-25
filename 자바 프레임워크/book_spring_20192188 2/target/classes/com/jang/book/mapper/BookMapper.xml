@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jang.book.mapper.BookMapper">
+
+	<!-- <select id="getBook" parameterType="int" resultType="Book">
+		SELECT *
+		FROM book
+		WHERE title = #{title}
+	</select>
+  -->
+	<select id="getBookList" resultType="Book">
+		SELECT bno, title, publisher, author, price
+		FROM book
+		ORDER BY bno ASC
+	</select>
+
+	<select id="getBook" parameterType="int" resultType="Book">
+		SELECT bno, title, publisher, author, price
+		FROM book
+		WHERE bno = #{bno}
+	</select>
+	
+	<select id="nn" resultType="int">
+		SELECT max(bno)+1
+		from book
+	</select>
+		
+	<insert id="addBook" parameterType="Book">
+		INSERT INTO book (
+			bno,
+			title,
+			publisher,
+			author,
+			price
+		)VALUES (
+			#{bno}, 
+			#{title}, 
+			#{publisher},
+			#{author}, 
+			#{price}
+		)
+	</insert>
+	
+	<update id="updateBook" parameterType="Book">
+		UPDATE book
+		SET title = #{title},
+			publisher = #{publisher},
+			author = #{author},
+			price = #{price}
+		WHERE bno = #{bno}
+	</update>
+	
+	<delete id="deleteBook" parameterType="int">
+		DELETE
+		FROM book
+		WHERE bno = #{bno}
+	</delete>
+
+</mapper>

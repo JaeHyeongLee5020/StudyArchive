@@ -1,0 +1,208 @@
+## 조인 : JOIN
+
+# 조인 실습을 위한 테이블 복사 ==> 테이블생성해야 실습가능합니다.
+
+-- 부서테이블
+CREATE TABLE DEPT
+AS
+SELECT * FROM HR.DEPT ;
+
+-- 지역테이블
+CREATE TABLE LOCATIONS
+AS
+SELECT * FROM HR.LOCATIONS ;
+
+-- 직무등급테이블
+CREATE TABLE JOB_GRADES
+AS
+SELECT * FROM HR.JOB_GRADES ;
+
+------------------------------------------------------
+
+# 조인
+
+- 하나 이상의 테이블을 옆으로 합치는것
+- 오라클 전용 조인 / ANSI 표준 조인
+
+# 조인 종류
+- CROSS JOIN
+- JOIN ( EQUI JOIN, 등가조인 )
+- OUTER JOIN
+- SELF JOIN
+- NON EQUI JOIN ( 비등가조인 )
+
+
+# CROSS JOIN
+- 조인 조건이 없음
+- 모든 경우의 수로 조회 : T1 ROW 3개  * T1 ROW 3개 => 9
+- 메모리에 악영향을 끼치므로 잘 사용하지 않습니다
+
+
+# JOIN ( EQUI JOIN, 등가조인 )
+- 조인 조건이 있음
+- T1.컬럼명 = T2.컬럼명
+- 조인 조건을 만족하는 ROW 검색됨
+
+# OUTER JOIN
+- 조인 조건이 있음
+- 조인 조건을 만족하는 ROW + 만족하지 않는 ROW 검색 
+- LEFT OUTER JOIN, RIGTH OUTER JOIN, FULL OUTER JOIN
+
+# SELF JOIN
+- 같은 테이블끼리 조인
+- 테이블의 별칭을 이용하여 다른 테이블 처럼 조인
+
+# NON EQUI JOIN ( 비등가조인 )
+- 조인 조건이 '=' 아닌 모든 조인 
+
+------------------------------------------------------------
+
+# CROSS JOIN
+
+SELECT *
+FROM   EMP , DEPT ;
+
+
+SELECT *
+FROM   EMP CROSS JOIN  DEPT ;
+
+
+# EQUI JOIN
+
+- 오라클 전용 구문 
+
+사번, 이름, 부서명 , 30부서 사원만 검색 
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP , DEPT
+WHERE  EMP.DEPARTMENT_ID = DEPT.DEPARTMENT_ID 
+   AND EMP.DEPARTMENT_ID = 30  ;
+
+
+- ANSI 표준 구문 
+- 조인조건구문 : ON(조인조건식) , USING(두테이블 모두 있는 컬럼명)
+
+사번, 이름, 부서명 
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP JOIN DEPT ON (EMP.DEPARTMENT_ID = DEPT.DEPARTMENT_ID ) 
+WHERE  EMP.DEPARTMENT_ID = 30 ;
+
+SELECT  EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM    EMP JOIN DEPT  USING ( DEPARTMENT_ID  ) 
+WHERE   DEPARTMENT_ID = 30 ; 
+
+
+- 성능을 고려한 조인 
+- 테이블 별칭을 넣어서 쿼리 생성 
+
+SELECT E.EMPLOYEE_ID, E.LAST_NAME, D.DEPARTMENT_NAME
+FROM   EMP E  , DEPT D
+WHERE  E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+   AND E.DEPARTMENT_ID = 30  ;
+
+SELECT E.EMPLOYEE_ID, E.LAST_NAME, D.DEPARTMENT_NAME
+FROM   EMP E JOIN DEPT E ON (E.DEPARTMENT_ID = D.DEPARTMENT_ID ) 
+WHERE  E.DEPARTMENT_ID = 30 ;
+
+# OUTER JOIN 
+
+- 오라클 전용 구문 
+- LEFT OUTER JOIN
+
+사번, 이름, 부서명 
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP , DEPT
+WHERE  EMP.DEPARTMENT_ID = DEPT.DEPARTMENT_ID(+)  ;
+
+
+- RIGHT OUTER JOIN
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP , DEPT
+WHERE  EMP.DEPARTMENT_ID(+) = DEPT.DEPARTMENT_ID  ;
+
+
+- FULL OUTER JOIN
+- 오라클 전용 구문에서 FULL OUTER 지원안함
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP , DEPT
+WHERE  EMP.DEPARTMENT_ID(+) = DEPT.DEPARTMENT_ID(+) ;
+==> ORA-01468: a predicate may reference only one outer-joined table
+
+
+- ANSI 표준 구문 
+- LEFT OUTER JOIN , OUTER 생략가능
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP LEFT JOIN DEPT 
+       ON (EMP.DEPARTMENT_ID = DEPT.DEPARTMENT_ID )  ;
+
+ 
+- RIGHT OUTER JOIN , OUTER 생략가능
+
+SELECT EMPLOYEE_ID, LAST_NAME, DEPARTMENT_NAME
+FROM   EMP RIGHT JOIN DEPT 
+       ON (EMP.DEPARTMENT_ID = DEPT.DEPARTMENT_ID )  ;
+
+
+- FULL OUTER JOIN , OUTER 생략가능
+
+SELECT EMPLOYEE_ID, 
+       LAST_NAME, 
+       DEPARTMENT_NAME
+FROM   EMP FULL JOIN DEPT 
+       ON (EMP.DEPARTMENT_ID = DEPT.DEPARTMENT_ID )  ;
+
+
+# SELF JOIN
+
+사번, 이름, 직속상관이름
+
+SELECT   E.EMPLOYEE_ID  사번
+      ,   E.LAST_NAME    사원이름
+    ,   M.LAST_NAME    직속상관이름
+FROM      EMP E, EMP M
+WHERE   E.MANAGER_ID = M.EMPLOYEE_ID ;
+
+
+# NON EQUI JOIN
+
+이름, 월급, 월급레벨
+
+SELECT E.LAST_NAME, E.SALARY, J.GRADE_LEVEL
+FROM   EMP E, JOB_GRADES J
+WHERE  E.SALARY BETWEEN J.LOWEST_SAL AND J.HIGHEST_SAL ;
+
+SELECT E.LAST_NAME, E.SALARY, J.GRADE_LEVEL
+FROM   EMP E JOIN JOB_GRADES J
+       ON ( E.SALARY BETWEEN J.LOWEST_SAL AND J.HIGHEST_SAL ) ;
+
+
+-------------------------------------------------------------
+
+# 여러 테이블 조인하기
+
+T1(AA,BB)
+T2(BB,CC)
+T3(CC,DD)
+
+SELECT *
+FROM   T1, T2, T3
+WHERE  T1.BB = T2.BB AND T2.CC=T3.CC ;
+
+SELECT *
+FROM   T1 JOIN T2 ON (T1.BB = T2.BB )  JOIN T3 ON (T2.CC=T3.CC) ;
+
+
+--------------------------------------------------------------
+
+
+
+
+
+
+
+

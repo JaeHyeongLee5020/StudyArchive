@@ -1,0 +1,148 @@
+## 서브쿼리 - SUBQUERY
+
+- 쿼리안의 쿼리
+- 서브쿼리 괄호 ( 서브쿼리 ) 로 감싼다.
+- 수행 : 서브쿼리 실행 후 결과값 -> 메인 쿼리 전달되어 실행 
+- 서브쿼리의 리턴값이 NULL 이면 메인쿼리의 결과도 NULL 
+- TOP_N 알고리즘 서브쿼리를 제외하고 ORDER BY 사용하지 않는다
+
+- 사용위치 
+  => SELECT 절 : 스칼라 서브쿼리  => 함수로 구현행서 사용하는 추세 
+  => WHERE 절 : 중첩 서브쿼리 => 조건식의 우항에 기술 
+  => FROM 절 : IN-LINE 뷰 : 서브쿼리의 결과를 테이블 처럼 사용하고 사라짐
+
+Chen보다 많은 급여를 받는 사원의 이름과 급여
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY > ( SELECT SALARY 
+		  FROM   EMP
+		  WHERE  LAST_NAME = 'Chen' ) ;
+
+부서가 101 사원과 같고, 월급이 141 사원보다 많은 사원?
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  DEPARTMENT_ID = ( SELECT DEPARTMENT_ID
+			 FROM   EMP
+			 WHERE  EMPLOYEE_ID = 101 ) 
+   AND SALARY  >   ( SELECT  SALARY
+		     FROM   EMP
+		     WHERE  EMPLOYEE_ID = 141 )  ;
+
+우리 회사에서 월급을 가장 많이 받는 사원의 이름과 급여 
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY = ( SELECT MAX(SALARY) FROM EMP ) ;
+
+부서별 최저급여 검색, 단 60번 부서의 최저급여보다 큰 부서만 검색 
+
+SELECT DEPARTMENT_ID, MIN(SALARY) AS 최저급여
+FROM    EMP
+GROUP BY DEPARTMENT_ID 
+HAVING MIN(SALARY ) > ( SELECT MIN(SALARY)
+			FROM   EMP
+			WHERE   DEPARTMENT_ID = 60  ) ;
+
+-----------------------------------------------------------------
+
+# 단일행 비교연산자 : >=,<=, >, <, =, !=
+
+# 다중행 비교연산자 : IN, 비교연산자 ANY, 비교연산자 ALL
+
+- 서브쿼리의 결과가 다중행 (여러행) 이 리턴될 때 사용 
+
+부서별 최고급여와 같은 급여를 받는 사원의 이름과 급여 
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY = ( 부서별 최고급여 ) ;
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY = (  SELECT   MAX(SALARY)
+		   FROM     EMP
+		   GROUP BY DEPARTMENT_ID ) ;
+==> 오류발생 
+==> ORA-01427: single-row subquery returns more than one row
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY IN (  SELECT   MAX(SALARY)
+		   FROM     EMP
+		   GROUP BY DEPARTMENT_ID ) ;
+
+
+'IT_PROG' 직군의 어떤 사원보다 작은 월급을 받는 사원의 정보
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY < ANY   ( SELECT SALARY
+			FROM   EMP
+		        WHERE  JOB_ID = 'IT_PROG' )
+
+'IT_PROG' 직군의 모든 사원보다 작은 월급을 받는 사원의 정보
+
+SELECT  LAST_NAME, SALARY
+FROM   EMP
+WHERE  SALARY < ALL   ( SELECT SALARY
+			FROM   EMP
+		        WHERE  JOB_ID = 'IT_PROG' )
+
+--------------------------------------------------------------
+
+# TOP-N 알고리즘 
+- 의사컬럼 (pseudo column) : rownum,..
+  => 실제 테이블의 컬럼은 아니지만 늘 사용가능한 컬럼 
+
+2005년에 입사한 사원중에 급여를 많이 받는 5명의 사원의 이름과 급여 
+
+SELECT ROWNUM AS 순위, LAST_NAME, SALARY
+
+FROM    ( SELECT LAST_NAME, SALARY
+	 FROM    EMP
+	 WHERE  EXTRACT(YEAR FROM HIRE_DATE) = 2005
+         ORDER BY 2 DESC )
+
+WHERE   ROWNUM <= 5 ;
+
+---------------------------------------------------------------
+
+# WITH 절
+- FROM 절에 사용하는 서브쿼리가 길고 복잡할 경우 위에 미리 선언해 놓는것
+
+
+WITH
+E   AS ( SELECT * FROM EMP   WHERE DEPARTMENT_ID= 60 ) ,
+D   AS ( SELECT  DEPARTMENT_ID, DEPARTMENT_NAME FROM DEPT )
+
+SELECT  E.LAST_NAME, D.DEPARTMENT_NAME
+FROM   E JOIN D USING( DEPARTMENT_ID ) ;
+
+- WITH 미사용시 
+
+SELECT  LAST_NAME, DEPARTMENT_NAME
+FROM   ( SELECT * FROM EMP   WHERE DEPARTMENT_ID= 60 )  JOIN 
+       ( SELECT  DEPARTMENT_ID, DEPARTMENT_NAME FROM DEPT )              
+       USING( DEPARTMENT_ID ) ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
